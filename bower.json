@@ -1,0 +1,22 @@
+{
+  "name": "dhanik",
+  "version": "1.0.0",
+  "description": "FrontEnd Base Gulp Setup",
+  "main": "index.html",
+  "authors": [
+    "Wibodha Dhanik Alkegama"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "react": "~0.13.3"
+  }
+}
