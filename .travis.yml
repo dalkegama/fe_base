@@ -1,2 +1,4 @@
 language: javascript
+node_js:
+- "v0.12.6"
 sudo: required
