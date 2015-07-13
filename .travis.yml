@@ -1,4 +1,4 @@
-language: javascript
+language: node_js
 sudo: required
 node_js:
 - "v0.12.6"
