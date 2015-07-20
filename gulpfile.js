@@ -43,14 +43,20 @@ Compiling all the Stylesheets of the project
 gulp.task('styles',function(){
     return gulp.src(paths.styles)
         .pipe(sourcemaps.init())
-        .pipe(plumber({
-            errorHandler: notify.onError("\n SCSS Error: <%= error.message %>,\n Line: <%= error.line %> : Col: <%= error.column %> ",function(){
-                this.emit('end');
-            })
-        }))
-        .pipe(sass({
-            errLogToConsole: true
-        }))
+        .pipe(plumber())
+        //.pipe(plumber({
+        //    errorHandler: notify.onError("\n SCSS Error: <%= error.message %>,\n Line: <%= error.line %> : Col: <%= error.column %> ",function(){
+        //        this.emit('end');
+        //    })
+        //}))
+        //.pipe(sass({
+        //    errLogToConsole: true
+        //}))
+        .on('error', function(err) {
+            // Would like to catch the error here
+            console.log(err);
+            this.emit('end');
+        })
         .pipe(notify({
             message: "Style task completed"
         }))
@@ -65,14 +71,20 @@ gulp.task('styles',function(){
 gulp.task('scripts',function(){
     return gulp.src(paths.scripts)
         .pipe(sourcemaps.init())
+        .pipe(plumber())
         .pipe(babel())
-        .pipe(plumber({
-            errorHandler: notify.onError("\n JS Error: <%= error.message %> ",function(){
-                this.emit('end');
-            })
-        }))
+        //.pipe(plumber({
+        //    errorHandler: notify.onError("\n JS Error: <%= error.message %> ",function(){
+        //        this.emit('end');
+        //    })
+        //}))
         //.pipe(jshint('.jshintrc'))
         //.pipe(jshint.reporter('default'))
+        .on('error', function(err) {
+            // Would like to catch the error here
+            console.log(err);
+            this.emit('end');
+        })
         .pipe(notify({
             message:"JavaScript task completed"
         }))
