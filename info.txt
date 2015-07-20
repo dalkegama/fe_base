@@ -1,0 +1,175 @@
+var gulp = require('gulp');
+//===========================================================
+// All necessary gulp plug-ins
+//===========================================================
+var uglify		= require('gulp-uglify'),
+	concat		= require('gulp-concat'),
+	notify		= require('gulp-notify'),
+	compass 	= require('gulp-compass'),
+	watch 	 	= require('gulp-watch'),
+	cache		= require('gulp-cache'),
+	plumber 	= require('gulp-plumber'),
+	order 		= require('gulp-order'),
+	imagemin	= require('gulp-imagemin'),
+	rename 		= require('gulp-rename'),
+	del 		= require('del'),
+	minifycss 	= require('gulp-minify-css'),
+	browserSync = require('browser-sync');
+
+//===========================================================
+// Paths of apps folder structure
+//===========================================================
+var paths = {
+	javascript: 'javascript/*.js',
+	scss : 'scss/*.scss',
+	images : 'uncomp_images/*.*',
+	php : '../../*.php'
+};
+
+//===========================================================
+// When you run `gulp` from cli it will create a clean build
+//===========================================================
+gulp.task('clean:build', function (cb) {
+	del([
+			'../css',
+			'../fonts',
+			'../javascript',
+			'../images',
+			'!../src'
+		],
+		{
+			force: true
+		},cb);
+});
+
+//===========================================================
+// Task of copying necessary files from production to live
+//===========================================================
+gulp.task('copyFiles',function(){
+	// Copying javascript files
+	gulp.src([
+		'vendor_pkgs/jquery/dist/jquery.min.js',
+		'vendor_pkgs/modernizr/modernizr.js'])
+		.pipe(plumber())
+		.pipe(gulp.dest('../javascript'))
+
+	// Copying all font files
+	gulp.src([
+		'webfonts/*/*.eot',
+		'webfonts/*/*.svg',
+		'webfonts/*/*.ttf',
+		'webfonts/*/*.woff*',
+		'webfonts/*/*.woff2'])
+		.pipe(plumber())
+		.pipe(gulp.dest('../fonts'))
+		.pipe(notify({ message: 'Files copied successfully' }));
+});
+
+
+//===========================================================
+// Concatenation of the app's Javascript files.
+//===========================================================
+gulp.task('javascript', function() {
+	return gulp.src(paths.javascript)
+		.pipe(plumber())
+		.pipe(order([
+			'vendor_pkgs/foundation/js/foundation.js',
+			'js/js_file.js',
+		]))
+		.pipe(concat('all.min.js'))
+		.pipe(gulp.dest('../javascript'))
+		.on('error', function(err) {
+			// Would like to catch the error here
+			console.log(err);
+			this.emit('end');
+		})
+		.pipe(notify({ message: 'Javascript task ran successfully' }));
+});
+
+
+//===========================================================
+// Concatenation and renaming of the apps SCSS/Style files.
+//===========================================================
+gulp.task('scss', function(){
+	return gulp.src(paths.scss)
+		.pipe(plumber())
+		.pipe(compass({
+			config_file: './config.rb',
+			css: '../css',
+			sass: 'scss',
+		}))
+		.pipe(gulp.dest('../css'))
+		.on('error', function(err) {
+			// Would like to catch the error here
+			console.log(err);
+			this.emit('end');
+		})
+		.pipe(notify({ message: 'SCSS task ran successfully' }));
+});
+
+
+//===========================================================
+// Compressing apps images.
+//===========================================================
+gulp.task('images', function(){
+	return gulp.src(paths.images)
+		.pipe(plumber())
+		.pipe(cache(imagemin({optimizationLevel: 3, progressive: true, interlaced: true})))
+		.pipe(gulp.dest('../images'))
+		.on('error', function(err) {
+			// Would like to catch the error here
+			console.log(err);
+			this.emit('end');
+		})
+		.pipe(notify({ message: 'Image optimization task ran successfully' }));
+});
+
+//===========================================================
+// The Browser-Sync for live testing with auto reload.
+// No more Ctrl+R or hitting the refresh button :D
+//===========================================================
+gulp.task('browserSync',function(){
+	browserSync.init(['css/*.css','javascript/*.js',paths.php],{
+		proxy: "http://localhost/", // put the URL of the site your are working eg: http://wpcluster1.test/eveningexpress/,
+		injectChanges: true
+	});
+});
+
+//===========================================================
+// The default task (called when you run `gulp` from cli)
+//===========================================================
+gulp.task('default',['clean:build'], function(){
+	gulp.start(
+		'scss',
+		'javascript',
+		'images',
+		'copyFiles');
+});
+
+
+//===========================================================
+// The default tasks (called when you run `gulp watch` from cli)
+//===========================================================
+gulp.task('watch',['browserSync','copyFiles'], function(){
+	gulp.watch(paths.javascript,['javascript']);
+	gulp.watch(paths.scss,['scss']);
+	gulp.watch(paths.images,['images']);
+});
+
+//==================================================================
+// This task will do the concatenation,minification of all the files
+// Run 'gulp dctbuild' before pushing to production
+//==================================================================
+gulp.task('dctbuild',function(){
+	gulp.src('../javascript/all.min.js')
+		.pipe(plumber())
+		.pipe(uglify())
+		.pipe(gulp.dest('../javascript'))
+		.pipe(notify({ message: 'Javascript minified' }));
+
+	gulp.src('../css/*.css')
+		.pipe(plumber())
+		.pipe(minifycss())
+		.pipe(gulp.dest('../css'))
+		.pipe(notify({ message: 'CSS minified' }));
+});
